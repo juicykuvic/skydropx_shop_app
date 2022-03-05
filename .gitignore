@@ -1,0 +1,7 @@
+template_deploy.yaml
+dist/
+node_modules/
+package-lock.json
+.env*.local
+
+*.sw?
