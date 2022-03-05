@@ -2,7 +2,10 @@
   <div>
     <h1>My Shop</h1>
     <navbar :cart="cart" :cartQty="cartQty" :cartTotal="cartTotal"></navbar>
-    <price-slider :sliderStatus="sliderStatus" :maximum.sync="maximum"></price-slider>
+    <price-slider
+      :sliderStatus="sliderStatus"
+      :maximum.sync="maximum"
+    ></price-slider>
     <product-list :maximum="maximum" :products="products"></product-list>
   </div>
 </template>
@@ -20,12 +23,12 @@ export default {
     "cartQty",
     "cartTotal",
     "sliderStatus",
-    "sliderState"
+    "sliderState",
   ],
   components: {
     Navbar,
     PriceSlider,
-    ProductList
-  }
+    ProductList,
+  },
 };
 </script>

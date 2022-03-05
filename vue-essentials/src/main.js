@@ -10,7 +10,7 @@ import "animate.css/animate.css";
 
 import {
   faShoppingCart,
-  faDollarSign
+  faDollarSign,
 } from "@fortawesome/free-solid-svg-icons";
 
 library.add(faShoppingCart, faDollarSign);
@@ -25,16 +25,16 @@ const router = new VueRouter({
   routes: [
     {
       path: "*",
-      component: Products
+      component: Products,
     },
     {
       path: "/checkout",
-      component: Checkout
-    }
-  ]
+      component: Checkout,
+    },
+  ],
 });
 
 new Vue({
-  render: h => h(App),
-  router
+  render: (h) => h(App),
+  router,
 }).$mount("#app");
