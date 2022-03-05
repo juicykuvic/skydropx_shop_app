@@ -22,7 +22,7 @@ export default {
       maximum: 99,
       sliderStatus: true,
       cart: [],
-      products: null,
+      products: [],
     };
   },
   computed: {
