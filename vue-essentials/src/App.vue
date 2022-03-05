@@ -71,7 +71,7 @@ export default {
     },
   },
   mounted: function () {
-    fetch("https://hplussport.com/api/products/order/price")
+    fetch(process.env.VUE_APP_BACKEND_HOST + "/shopitem")
       .then((response) => response.json())
       .then((data) => {
         this.products = data;

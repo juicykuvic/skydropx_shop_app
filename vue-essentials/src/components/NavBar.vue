@@ -1,6 +1,13 @@
 <template>
   <nav class="navbar navbar-light fixed-top">
     <div class="navbar-text ml-auto d-flex">
+      <router-link
+        class="btn btn-sm btn-outline-info text-dark float-right mr-4"
+        to="/newitem"
+      >
+        <i class="fas fa-plus"></i>
+        <font-awesome-icon icon="plus"></font-awesome-icon>
+      </router-link>
       <button
         class="btn btn-sm btn-outline-success"
         @click="$parent.$emit('toggle')"

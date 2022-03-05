@@ -18,7 +18,7 @@
         </button>
       </div>
       <div class="col-4">
-        <img class="img-fluid d-block" :src="item.image" :alt="item.name" />
+        <img class="img-fluid d-block" :src="item.image_url" :alt="item.name" />
       </div>
       <div class="col">
         <h3 class="text-info">{{ item.name }}</h3>
