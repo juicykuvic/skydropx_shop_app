@@ -18,7 +18,7 @@
         >
           <span class="badge badge-pill badge-light">{{ cartQty }}</span>
           <i class="fas fa-shopping-cart mx-2"></i>
-          <price :value="Number(cartTotal)"></price>
+          <item-price :value="Number(cartTotal)"></item-price>
         </button>
         <div
           class="dropdown-menu dropdown-menu-right"
@@ -32,7 +32,9 @@
               >
               {{ item.product.name }}
               <b>
-                <price :value="Number(item.qty * item.product.price)"></price>
+                <item-price
+                  :value="Number(item.qty * item.product.price)"
+                ></item-price>
               </b>
               <a
                 href="#"
@@ -54,18 +56,18 @@
 </template>
 
 <script>
-import Price from "./Price.vue";
+import ItemPrice from "./ItemPrice.vue";
+// eslint-disable-next-line
 import VueRouter from "vue-router";
 
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 
 export default {
-  name: "navbar",
+  name: "nav-bar",
   props: ["cart", "cartQty", "cartTotal"],
   components: {
     FontAwesomeIcon,
-    VueRouter,
-    Price,
+    ItemPrice,
   },
 };
 </script>

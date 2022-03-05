@@ -1,21 +1,21 @@
 <template>
   <div>
     <h1>My Shop</h1>
-    <navbar :cart="cart" :cartQty="cartQty" :cartTotal="cartTotal"></navbar>
+    <nav-bar :cart="cart" :cartQty="cartQty" :cartTotal="cartTotal"></nav-bar>
     <price-slider
       :sliderStatus="sliderStatus"
-      :maximum.sync="maximum"
+      :maximum="maximum"
     ></price-slider>
     <product-list :maximum="maximum" :products="products"></product-list>
   </div>
 </template>
 <script>
-import Navbar from "./Navbar.vue";
+import NavBar from "./NavBar.vue";
 import PriceSlider from "./PriceSlider.vue";
 import ProductList from "./ProductList.vue";
 
 export default {
-  name: "products",
+  name: "product-items",
   props: [
     "products",
     "maximum",
@@ -26,7 +26,7 @@ export default {
     "sliderState",
   ],
   components: {
-    Navbar,
+    NavBar,
     PriceSlider,
     ProductList,
   },

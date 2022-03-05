@@ -8,9 +8,8 @@
   >
     <div
       class="row d-flex mb-3 align-items-center"
-      v-for="(item, index) in products"
+      v-for="(item, index) in filteredProducts"
       :key="item.id"
-      v-if="item.price <= Number(maximum)"
       :data-index="index"
     >
       <div class="col-1 m-auto">
@@ -25,7 +24,7 @@
         <h3 class="text-info">{{ item.name }}</h3>
         <p class="mb-0">{{ item.description }}</p>
         <div class="h5 float-right">
-          <price :value="Number(item.price)"></price>
+          <item-price :value="Number(item.price)"></item-price>
         </div>
       </div>
     </div>
@@ -33,12 +32,17 @@
 </template>
 
 <script>
-import Price from "./Price.vue";
+import ItemPrice from "./ItemPrice.vue";
 
 export default {
   name: "product-list",
-  components: { Price },
+  components: { ItemPrice },
   props: ["products", "maximum"],
+  computed: {
+    filteredProducts: function () {
+      return this.products.filter((item) => item.price <= Number(this.maximum));
+    },
+  },
   methods: {
     beforeEnter: function (el) {
       el.className = "d-none";

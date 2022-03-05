@@ -5,10 +5,10 @@
     <table class="table table-hover" v-if="cart.length">
       <caption class="text-right h3">
         <b>Total:</b>
-        <price
+        <item-price
           class="d-block text-success font-weight-light"
           :value="Number(cartTotal)"
-        ></price>
+        ></item-price>
       </caption>
       <thead>
         <tr>
@@ -50,14 +50,15 @@
 </template>
 
 <script>
-import Price from "./Price.vue";
+import ItemPrice from "./ItemPrice.vue";
+// eslint-disable-next-line
 import VueRouter from "vue-router";
 
 export default {
-  name: "checkout",
+  name: "checkout-page",
   props: ["cart", "cartTotal"],
   components: {
-    Price,
+    ItemPrice,
   },
 };
 </script>
