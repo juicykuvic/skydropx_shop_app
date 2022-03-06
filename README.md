@@ -1,4 +1,5 @@
 # skydropx_challenge
+![](https://github.com/vwjugow/skydropx_challenge/workflows/Project%20Tests/badge.svg)
 
 ## Table of Contents
 1. [General Info](#general-info)
