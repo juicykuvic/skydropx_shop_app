@@ -1,0 +1,266 @@
+Description: RDS database cluster running in a VPC and a custom deploy process to create tables and users
+Transform: "AWS::Serverless-2016-10-31"
+
+Globals:
+  Function:
+    Runtime: python3.8
+
+Parameters:
+  DatabaseName:
+    Type: String
+  ServiceUserName:
+    Type: String
+  ServiceUserPassword:
+    NoEcho: true
+    Type: String
+  AdminUserName:
+    Type: String
+  AdminUserPassword:
+    NoEcho: true
+    Type: String
+  YourExternalIp:
+    Type: String
+  Version:
+    Type: String
+    Default: v1
+  Prefix:
+    Type: String
+    Default: vw-shop-site
+
+Resources:
+##
+#  VPC Related Resources
+##
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.1.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+      - Key: name
+        Value:  !Join ['', [!Ref DatabaseName, "-VPC" ]]
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    DependsOn: VPC
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+
+  # Public Subnets
+  PublicSubnetA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.1.10.0/24
+      AvailabilityZone: !Select [ 0, !GetAZs ]
+      Tags:
+      - Key: Names
+        Value: !Sub ${DatabaseName}-PublicA
+  PublicSubnetB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.1.20.0/24
+      AvailabilityZone: !Select [ 1, !GetAZs ]
+      Tags:
+      - Key: Names
+        Value: !Sub ${DatabaseName}-PublicA
+
+  # Route Table
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+  PublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: AttachGateway
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  # Attach the public subnets to public route tables,
+  # and attach the private subnets to private route tables:
+  PublicSubnetARouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnetA
+      RouteTableId: !Ref PublicRouteTable
+
+  PublicSubnetBRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnetB
+      RouteTableId: !Ref PublicRouteTable
+
+##
+#  Security Groups Section
+##
+
+  # Security Groups
+  LambdaSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow http to client host
+      VpcId: !Ref VPC
+      SecurityGroupEgress:
+      - IpProtocol: '-1'
+        FromPort: -1
+        ToPort: -1
+        CidrIp: 0.0.0.0/0
+
+  DatabaseSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    DependsOn:
+      - PublicSubnetA
+      - PublicSubnetB
+    Properties:
+      GroupDescription: Allow http to client host
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+      # Allows you to log into mysql from home
+      - IpProtocol: tcp
+        FromPort: 3306
+        ToPort: 3306
+        CidrIp: !Sub ${YourExternalIp}/32
+      # Rule to allow traffic in from resources that are attached to the Lambda Security group
+      # This is the specific rule that allows the Lambda to have network access to our RDS cluster
+      - IpProtocol: tcp
+        FromPort: 3306
+        ToPort: 3306
+        SourceSecurityGroupId: !GetAtt LambdaSecurityGroup.GroupId
+      SecurityGroupEgress:
+      - IpProtocol: "-1"
+        FromPort: -1
+        ToPort: -1
+        CidrIp: 0.0.0.0/0
+
+  # Subnet Group
+  PublicSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupName: publicsubnetgroup
+      DBSubnetGroupDescription: Public Subnet Groups
+      SubnetIds:
+        - !Ref PublicSubnetA
+        - !Ref PublicSubnetB
+
+  # Database Cluster (Currently a serverless Aurora SQL DB)
+  # I'm not setting Redundancy for this as it's just a test, and EC2 is expensive
+  RDSDatabase:
+    Type: AWS::RDS::DBCluster
+    Properties:
+      DBClusterIdentifier: !Ref DatabaseName
+      DatabaseName: !Ref DatabaseName
+      Engine: aurora-mysql
+      EngineVersion: 8.0.mysql_aurora.3.01.0
+      EnableIAMDatabaseAuthentication: true
+      MasterUsername: !Ref AdminUserName
+      MasterUserPassword: !Ref AdminUserPassword
+      DBSubnetGroupName: !Ref PublicSubnetGroup
+      VpcSecurityGroupIds:
+        - !GetAtt DatabaseSecurityGroup.GroupId
+  RDSInstance1:
+    Type: AWS::RDS::DBInstance
+    DependsOn:
+      - PublicSubnetA
+    Properties:
+      DBClusterIdentifier: !Ref RDSDatabase
+      # Customize this to the size machine you want
+      DBInstanceClass: db.t3.medium
+      Engine: aurora-mysql
+      EngineVersion: 8.0.mysql_aurora.3.01.0
+      PubliclyAccessible: true
+      DBSubnetGroupName: !Ref PublicSubnetGroup
+
+##
+# Lambda API
+##
+  ServiceApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: ServiceApi
+      StageName: !Ref Version
+      TracingEnabled: true
+      Cors:
+        AllowMethods: "'POST, GET, PUT, DELETE'"
+        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+        AllowOrigin: "'*'"
+        MaxAge: "'60'"
+        AllowCredentials: false
+  LambdaFunction:
+    Type: AWS::Serverless::Function
+    Description: Function to get the data out of the database
+    Properties:
+      CodeUri: shop_backend/
+      Handler: app.app
+      Timeout: 3
+      Policies:
+        - AWSLambdaVPCAccessExecutionRole
+      Environment:
+        Variables:
+          DB_SERVICE_USER: !Ref AdminUserName
+          DB_SERVICE_PASSWORD: !Ref AdminUserPassword
+          DB_HOST: !GetAtt RDSDatabase.ReadEndpoint.Address
+          DB_NAME: !Ref DatabaseName
+          FLASK_CONFIG_FILE: envs/flask.cfg
+      VpcConfig:
+        SecurityGroupIds:
+          - !GetAtt LambdaSecurityGroup.GroupId
+        SubnetIds:
+          - !Ref PublicSubnetA
+          - !Ref PublicSubnetB
+      Events:
+        ApiEventRoot:
+          Type: Api
+          Properties:
+            Path: /
+            RestApiId: !Ref ServiceApi
+            Method: Get
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /{proxy+}
+            RestApiId: !Ref ServiceApi
+            Method: ANY
+
+  S3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "${Prefix}-bucket"
+      AccessControl: PublicRead
+      WebsiteConfiguration:
+        ErrorDocument: index.html
+        IndexDocument: index.html
+  BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref S3Bucket
+      PolicyDocument:
+        Statement:
+          Action:
+            - s3:GetObject
+          Effect: Allow
+          Resource: !Sub "arn:aws:s3:::${S3Bucket}/*"
+          Principal: "*"
+
+Outputs:
+  ApiUrl:
+    Description: The API URL
+    Value: !Sub "https://${ServiceApi}.execute-api.${AWS::Region}.amazonaws.com/${Version}/"
+  WebsiteURL:
+    Value: !GetAtt
+      - S3Bucket
+      - WebsiteURL
+    Description: URL for website hosted on S3
+  S3BucketSecureURL:
+    Value: !Join
+      - ''
+      - - 'https://'
+        - !GetAtt
+          - S3Bucket
+          - DomainName
+    Description: Name of S3 bucket to hold website content

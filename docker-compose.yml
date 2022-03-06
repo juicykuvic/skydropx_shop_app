@@ -1,0 +1,21 @@
+version: '3'
+services:
+  database:
+    image: 'mysql:8.0.28'
+    hostname: database
+    ports:
+      - 32000:3306
+    volumes:
+      - ./db-data/:/docker-entrypoint-initdb.d/:ro
+    env_file: ./db-data/.env
+  api:
+    build:
+      context: ./shop_backend
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./shop_backend:/var/app
+    env_file: ./shop_backend/.env
+    depends_on:
+      - database
