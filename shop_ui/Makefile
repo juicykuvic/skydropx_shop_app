@@ -4,6 +4,7 @@ install:
 
 .PHONY: run
 run: 
+	echo "Terminate with ctrl+c"
 	npm run serve
 
 .PHONY: build

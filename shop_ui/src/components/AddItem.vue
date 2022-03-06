@@ -47,7 +47,7 @@ export default {
       e.preventDefault();
       let currentObj = this;
       this.axios
-        .post(process.env.VUE_APP_BACKEND_HOST + "/shopitem", {
+        .post(process.env.VUE_APP_BACKEND_HOST + "shopitem", {
           name: this.name,
           description: this.description,
           price: this.price,
