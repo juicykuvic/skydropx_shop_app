@@ -44,7 +44,7 @@ def add():
     instance = ShopItem(name, price, description, image_title, image_url)
     db.session.add(instance)
     db.session.commit()
-    return json.dumps("Added"), 201, {"Access-Control-Allow-Origin": "*"}
+    return json.dumps({"result": "Added"}), 201
 
 
 @shop_items_blueprint.route("/shopitem/<item_id>", methods=["DELETE"])
