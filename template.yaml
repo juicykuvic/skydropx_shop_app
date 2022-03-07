@@ -195,7 +195,7 @@ Resources:
     Type: AWS::Serverless::Function
     Description: Function to get the data out of the database
     Properties:
-      CodeUri: shop_backend/
+      CodeUri: shop_backend/deployment_package/
       Handler: app.app
       Timeout: 3
       Policies:

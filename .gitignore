@@ -13,6 +13,7 @@ shop_backend/pycodestyle.py
 shop_backend/six.py
 shop_backend/typing_extensions.py
 shop_backend/_cffi_backend.*
+shop_backend/deployment_package
 *.so
 
 
