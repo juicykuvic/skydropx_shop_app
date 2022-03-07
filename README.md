@@ -8,6 +8,9 @@
 4. [Local development](#local-development)
 5. [AWS Deployment](#aws-deployment)
 
+## General Info
+This is a simple shop application that let's you add items and then filter them by price
+
 ## Requirements
 1. linux/macos environment
 3. python > 3.5
@@ -17,11 +20,15 @@
 
 ## Architecture
 There are 2 projects:
-1. a vueJS UI.
-2. a python backend with a mysql database
+1. a vueJS UI, that interacts with the backend API.
+2. a python backend API, with a mysql database.
+
+## Deployment
+1. The UI is packaged, uploaded and served from an Amazon S3 bucket
+2. The API is deployed to an AWS Lambda
+3. The database is hosted in an Amazon RDS 
 
 ## Getting started
-
 First you'll need to add an .env file in the root directory, with the following variables. They are not needed for local/docker development, so if you want to get a quick start, just put any values.
 
 ```
@@ -61,7 +68,7 @@ $ make docker_stop_be # for stopping docker
 ### AWS Deployment
 ```
 $ make aws_verify
-$ aws_prepare_be
-$ aws_deploy_be
-$ aws_deploy_ui 
+$ make aws_prepare_be
+$ make aws_setup_be
+$ make aws_deploy_ui 
 ```

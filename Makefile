@@ -72,6 +72,7 @@ local_setup_be:
 
 .PHONY: local_test_be
 local_test_be:
+	rm -rf shop_backend/deployment_package
 	python -m pytest
 	
 .PHONY: aws_verify
@@ -84,10 +85,10 @@ aws_clean:
 
 .PHONY: aws_setup_be
 aws_setup_be:
-	pip install -t shop_backend -r shop_backend/requirements.txt --upgrade
+	./prepare_deployment_package.sh
 
 .PHONY: aws_deploy_be
-aws_deploy_be: 
+aws_deploy_be: aws_setup_be
 	aws cloudformation package \
 		--template-file template.yaml \
 		--output-template template_deploy.yaml \
