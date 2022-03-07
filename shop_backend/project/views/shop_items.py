@@ -52,9 +52,9 @@ def remove(item_id):
     item = ShopItem.query.filter_by(id=item_id)
     if item:
         item.delete()
-        return json.dumps("Deleted"), 200
+        return json.dumps({"message": "Deleted"}), 200
     else:
-        return json.dumps("Item with given id was not found"), 404
+        return json.dumps({"message": "Item with given id was not found"}), 404
 
 
 @shop_items_blueprint.route("/shopitem/<item_id>", methods=["PATCH"])
@@ -65,4 +65,4 @@ def edit(item_id):
     if item:
         item = item[0]
         item.price = new_price
-    return json.dumps("Edited"), 200
+    return json.dumps({"message": "Edited"}), 200
